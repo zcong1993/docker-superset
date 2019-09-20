@@ -8,6 +8,6 @@ jobs:
     - uses: actions/checkout@master
     - name: Publish Docker
       run: |
-        docker login -u zcong --password-stdin ${{ secrets.DOCKER_PASSWORD }}
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u zcong --password-stdin 
         make
         make push
