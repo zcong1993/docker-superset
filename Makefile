@@ -1,4 +1,4 @@
-image  := amancevice/superset
+image  := zcong/superset
 stages := build dist final
 shells := $(foreach stage,$(stages),shell@$(stage))
 
