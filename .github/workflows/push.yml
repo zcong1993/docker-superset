@@ -1,0 +1,14 @@
+on: push
+name: Docker Build and Push
+jobs:
+  dockerLogin:
+    name: Docker Login
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Publish Docker
+      uses: elgohr/Publish-Docker-Github-Action@1.10
+      with:
+        name: zcong/superset
+        username: zcong
+        password: ${{ secrets.DOCKER_PASSWORD }}
