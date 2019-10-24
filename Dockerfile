@@ -18,8 +18,9 @@ RUN wget -O /tmp/superset.tar.gz https://github.com/zcong1993/incubator-superset
 WORKDIR ${SUPERSET_HOME}/superset/assets
 RUN npm install && \
     npm run build
+
 # replace Timorleste as China city map
-# COPY ./hack/chinacity.geojson ./dist/fe50f1df71b69257315717808fb60e86.geojson
+COPY hack/chinacity.geojson ./dist/fe50f1df71b69257315717808fb60e86.geojson
 
 # --- Build dist package
 
