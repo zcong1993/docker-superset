@@ -20,7 +20,7 @@ RUN npm install
 RUN npm run build
 
 # # replace Timorleste as China city map
-COPY hack/chinacity.geojson ../superset/assets/dist/fe50f1df71b69257315717808fb60e86.geojson
+COPY hack/chinacity.geojson ../superset/static/assets/fe50f1df71b69257315717808fb60e86.geojson
 
 # --- Build dist package
 

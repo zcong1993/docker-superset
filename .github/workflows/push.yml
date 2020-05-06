@@ -12,5 +12,5 @@ jobs:
         make
         make push
         echo ${{ secrets.ALI_PASSWORD }} | docker login -u ${{ secrets.ALI_USERNAME }} --password-stdin registry.cn-shanghai.aliyuncs.com
-        docker tag zcong/superset:latest registry.cn-shanghai.aliyuncs.com/gymbo/superset:gymbo-0.36
-        docker push registry.cn-shanghai.aliyuncs.com/gymbo/superset:gymbo-0.36
+        docker tag zcong/superset:latest registry.cn-shanghai.aliyuncs.com/gymbo/superset:gymbo-0.36-05-07
+        docker push registry.cn-shanghai.aliyuncs.com/gymbo/superset:gymbo-0.36-05-07
