@@ -1,5 +1,5 @@
-ARG NODE_VERSION=latest
-ARG PYTHON_VERSION=latest
+ARG NODE_VERSION=12
+ARG PYTHON_VERSION=3.6
 
 # --- Build assets with NodeJS
 
@@ -11,16 +11,16 @@ ENV SUPERSET_HOME=/var/lib/superset/
 
 # Download source
 WORKDIR ${SUPERSET_HOME}
-RUN wget -O /tmp/superset.tar.gz https://github.com/zcong1993/incubator-superset/archive/${SUPERSET_VERSION}.tar.gz && \
-    tar xzf /tmp/superset.tar.gz -C ${SUPERSET_HOME} --strip-components=1
+RUN wget -qO /tmp/superset.tar.gz https://github.com/apache/incubator-superset/archive/${SUPERSET_VERSION}.tar.gz	
+RUN tar xzf /tmp/superset.tar.gz -C ${SUPERSET_HOME} --strip-components=1
 
-# Build assets
-WORKDIR ${SUPERSET_HOME}/superset/assets
-RUN npm install && \
-    npm run build
+	# Build assets	
+WORKDIR ${SUPERSET_HOME}/superset-frontend/	
+RUN npm install	
+RUN npm run build
 
-# replace Timorleste as China city map
-COPY hack/chinacity.geojson ./dist/fe50f1df71b69257315717808fb60e86.geojson
+# # replace Timorleste as China city map
+COPY hack/chinacity.geojson ../superset/assets/dist/fe50f1df71b69257315717808fb60e86.geojson
 
 # --- Build dist package
 
@@ -33,8 +33,8 @@ COPY --from=build ${SUPERSET_HOME} .
 COPY requirements-db.txt .
 
 # Create package to install
-RUN python setup.py sdist && \
-    tar czfv /tmp/superset.tar.gz requirements.txt requirements-db.txt dist
+RUN python setup.py sdist	
+RUN tar czfv /tmp/superset.tar.gz requirements.txt requirements-db.txt dist
 
 # --- Install dist package and finalize app
 
@@ -45,51 +45,52 @@ ENV GUNICORN_BIND=0.0.0.0:8088 \
     GUNICORN_LIMIT_REQUEST_FIELD_SIZE=0 \
     GUNICORN_LIMIT_REQUEST_LINE=0 \
     GUNICORN_TIMEOUT=60 \
-    GUNICORN_WORKERS=2 \
+    GUNICORN_WORKERS=3 \	
+    GUNICORN_THREADS=4 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONPATH=/etc/superset:/home/superset:$PYTHONPATH \
     SUPERSET_REPO=apache/incubator-superset \
     SUPERSET_VERSION=${SUPERSET_VERSION} \
     SUPERSET_HOME=/var/lib/superset
-ENV GUNICORN_CMD_ARGS="--workers ${GUNICORN_WORKERS} --timeout ${GUNICORN_TIMEOUT} --bind ${GUNICORN_BIND} --limit-request-line ${GUNICORN_LIMIT_REQUEST_LINE} --limit-request-field_size ${GUNICORN_LIMIT_REQUEST_FIELD_SIZE}"
+ENV GUNICORN_CMD_ARGS="--workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --bind ${GUNICORN_BIND} --limit-request-line ${GUNICORN_LIMIT_REQUEST_LINE} --limit-request-field_size ${GUNICORN_LIMIT_REQUEST_FIELD_SIZE}"
 
 # Create superset user & install dependencies
 WORKDIR /tmp/superset
 COPY --from=dist /tmp/superset.tar.gz .
-RUN useradd -U -m superset && \
-    mkdir -p /etc/superset && \
-    mkdir -p ${SUPERSET_HOME} && \
-    chown -R superset:superset /etc/superset && \
-    chown -R superset:superset ${SUPERSET_HOME} && \
-    apt-get update && \
-    apt-get install -y \
-        build-essential \
-        curl \
-        default-libmysqlclient-dev \
-        freetds-bin \
-        freetds-dev \
-        libffi-dev \
-        libldap2-dev \
-        libpq-dev \
-        libsasl2-2 \
-        libsasl2-dev \
-        libsasl2-modules-gssapi-mit \
-        libssl1.0 && \
-    apt-get clean && \
-    tar xzf superset.tar.gz && \
-    pip install dist/*.tar.gz -r requirements.txt -r requirements-db.txt && \
-    rm -rf ./*
-
-# Configure Filesystem
-COPY bin /usr/local/bin
-WORKDIR /home/superset
-VOLUME /etc/superset \
-       /home/superset \
-       /var/lib/superset
-
-# Finalize application
-EXPOSE 8088
-HEALTHCHECK CMD ["curl", "-f", "http://localhost:8088/health"]
-CMD ["gunicorn", "superset:app"]
+	RUN groupadd supergroup && \	
+    useradd -U -m -G supergroup superset && \	
+    mkdir -p /etc/superset && \	
+    mkdir -p ${SUPERSET_HOME} && \	
+    chown -R superset:superset /etc/superset && \	
+    chown -R superset:superset ${SUPERSET_HOME} && \	
+    apt-get update && \	
+    apt-get install -y \	
+        build-essential \	
+        curl \	
+        default-libmysqlclient-dev \	
+        freetds-bin \	
+        freetds-dev \	
+        libaio1 \	
+        libffi-dev \	
+        libldap2-dev \	
+        libpq-dev \	
+        libsasl2-2 \	
+        libsasl2-dev \	
+        libsasl2-modules-gssapi-mit \	
+        libssl1.0 && \	
+    apt-get clean && \	
+    tar xzf superset.tar.gz && \	
+    pip install dist/*.tar.gz -r requirements.txt -r requirements-db.txt && \	
+    rm -rf ./*	
+# Configure Filesystem	
+COPY bin /usr/local/bin	
+WORKDIR /home/superset	
+VOLUME /etc/superset \	
+       /home/superset \	
+       /var/lib/superset	
+# Finalize application	
+EXPOSE 8088	
+HEALTHCHECK CMD ["curl", "-f", "http://localhost:8088/health"]	
+CMD ["gunicorn", "superset.app:create_app()"]	
 USER superset

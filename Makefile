@@ -4,7 +4,7 @@ shells := $(foreach stage,$(stages),shell@$(stage))
 
 node_version     = 12.9
 python_version   = 3.6
-superset_version = gymbo-0.34.0.1
+superset_version = gymbo-0.36
 
 .PHONY: all clean demo edge push $(stages) $(shells)
 
