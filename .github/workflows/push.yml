@@ -1,8 +1,8 @@
 on: push
 name: Docker Build and Push
 jobs:
-  dockerLogin:
-    name: Docker Login
+  dockerBuildPush:
+    name: Docker Build Push
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
